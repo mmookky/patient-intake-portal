@@ -1,3 +1,5 @@
+import { RoleSelector } from "@/components/role-selector";
+
 export default function HomePage() {
-  return <main>Project setup in progress.</main>;
+  return <RoleSelector />;
 }
