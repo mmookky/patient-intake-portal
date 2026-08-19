@@ -10,14 +10,21 @@ export const patientFormSchema = z
     dateOfBirth: z
       .string()
       .min(1, "Date of birth is required")
-      .refine((value) => new Date(`${value}T00:00:00`) <= new Date(), "Date of birth cannot be in the future"),
+      .refine(
+        (value) => new Date(`${value}T00:00:00`) <= new Date(),
+        "Date of birth cannot be in the future",
+      ),
     gender: z.string().min(1, "Gender is required"),
     phoneNumber: z
       .string()
       .trim()
       .min(1, "Phone number is required")
       .regex(/^\+?[0-9][0-9\s()-]{7,19}$/, "Enter a valid phone number"),
-    email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email is required")
+      .email("Enter a valid email address"),
     address: z.string().trim().min(1, "Address is required").max(300),
     preferredLanguage: z.string().min(1, "Preferred language is required"),
     nationality: z.string().trim().min(1, "Nationality is required").max(80),
@@ -30,7 +37,9 @@ export const patientFormSchema = z
     const hasRelationship = Boolean(data.emergencyContactRelationship);
 
     if (hasName !== hasRelationship) {
-      const path = hasName ? "emergencyContactRelationship" : "emergencyContactName";
+      const path = hasName
+        ? "emergencyContactRelationship"
+        : "emergencyContactName";
       context.addIssue({
         code: "custom",
         path: [path],
@@ -41,7 +50,8 @@ export const patientFormSchema = z
 
 export type PatientFormData = z.infer<typeof patientFormSchema>;
 export type PatientStatus = "active" | "inactive" | "submitted";
-export type ConnectionStatus = "connecting" | "connected" | "reconnecting" | "offline";
+export type ConnectionStatus =
+  "connecting" | "connected" | "reconnecting" | "offline";
 
 export interface PatientSession {
   id: string;

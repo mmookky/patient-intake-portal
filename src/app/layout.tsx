@@ -6,7 +6,9 @@ export const metadata: Metadata = {
   description: "Real-time patient intake and staff monitoring experience.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body>{children}</body>

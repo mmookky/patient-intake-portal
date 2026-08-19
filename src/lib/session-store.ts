@@ -43,7 +43,11 @@ export async function saveSession(session: PatientSession): Promise<void> {
 export async function loadSession(id: string): Promise<PatientSession | null> {
   const supabase = getSupabaseBrowserClient();
   if (supabase) {
-    const { data, error } = await supabase.from("patient_sessions").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase
+      .from("patient_sessions")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
     if (error) throw error;
     if (data) return fromRow(data as SessionRow);
   }
