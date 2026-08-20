@@ -20,6 +20,43 @@ test("patient form reports validation errors", async ({ page }) => {
   await expect(page.getByText("Email is required")).toBeVisible();
 });
 
+test("patient confirms before submitting valid information", async ({
+  page,
+}) => {
+  await page.goto("/patient/e2e-confirmation");
+  await page.getByLabel("First name").fill("Narin");
+  await page.getByLabel("Last name").fill("Sukjai");
+  await page.getByLabel("Date of birth").fill("1993-05-14");
+  await page.getByLabel("Gender").selectOption("Male");
+  await page.getByLabel("Phone number").fill("+66 81 234 5678");
+  await page.getByLabel("Email").fill("narin@example.com");
+  await page.getByLabel("Address").fill("Bangkok, Thailand");
+  await page.getByLabel("Preferred language").selectOption("Thai");
+  await page.getByLabel("Nationality").fill("Thai");
+
+  await page.getByRole("button", { name: /review and submit/i }).click();
+
+  const confirmation = page.getByRole("alertdialog", {
+    name: /submit patient information/i,
+  });
+  await expect(confirmation).toBeVisible();
+  await expect(
+    confirmation.getByText(/cannot edit this form after/i),
+  ).toBeVisible();
+  await confirmation.getByRole("button", { name: /go back/i }).click();
+  await expect(confirmation).toBeHidden();
+
+  await page.getByRole("button", { name: /^reset form$/i }).click();
+  const resetConfirmation = page.getByRole("alertdialog", {
+    name: /reset this form/i,
+  });
+  await expect(resetConfirmation).toBeVisible();
+  await resetConfirmation
+    .getByRole("button", { name: /^reset form$/i })
+    .click();
+  await expect(page.getByLabel("First name")).toHaveValue("");
+});
+
 test("staff monitor waits without creating a patient session", async ({
   page,
 }) => {

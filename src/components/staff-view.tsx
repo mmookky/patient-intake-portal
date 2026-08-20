@@ -11,9 +11,14 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Brand } from "@/components/brand";
-import { ConnectionIndicator } from "@/components/connection-indicator";
+import { ConnectionBadge } from "@/components/connection-badge";
+import { PageState } from "@/components/page-state";
 import { useRealtimeSession } from "@/hooks/use-realtime-session";
-import type { PatientSession, PatientStatus } from "@/lib/patient-schema";
+import type {
+  ConnectionStatus,
+  PatientSession,
+  PatientStatus,
+} from "@/lib/patient-schema";
 import { markSessionInactive } from "@/lib/session-lifecycle";
 import { loadSession } from "@/lib/session-store";
 
@@ -69,8 +74,8 @@ export function StaffView({ sessionId }: { sessionId: string }) {
 
   if (loading)
     return (
-      <CenteredState
-        icon={<LoaderCircle className="size-7 animate-spin" />}
+      <PageState
+        icon={<LoaderCircle className="mx-auto size-7 animate-spin" />}
         title="Loading patient session"
         description="Retrieving the latest saved information…"
       />
@@ -104,7 +109,7 @@ function SessionDetails({
   connectionStatus,
 }: {
   session: PatientSession;
-  connectionStatus: Parameters<typeof ConnectionIndicator>[0]["status"];
+  connectionStatus: ConnectionStatus;
 }) {
   const { formData } = session;
   const fullName =
@@ -138,9 +143,7 @@ function SessionDetails({
             {status.icon}
             {status.label}
           </span>
-          <span className="rounded-full border border-slate-200 bg-white px-4 py-2">
-            <ConnectionIndicator status={connectionStatus} />
-          </span>
+          <ConnectionBadge status={connectionStatus} />
         </div>
       </div>
 
@@ -226,7 +229,7 @@ function SessionDetails({
             />
           </div>
           <p className="mt-6 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
-            Status changes to inactive after 30 seconds without patient
+            Status changes to inactive after 10 seconds without patient
             interaction.
           </p>
         </aside>
@@ -318,26 +321,6 @@ function CenteredCard({
       <p className="mt-3 leading-7 text-slate-600">{description}</p>
       {action && <div className="mt-7">{action}</div>}
     </section>
-  );
-}
-
-function CenteredState({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <main className="grid min-h-screen place-items-center bg-slate-50 px-4">
-      <div className="text-center text-blue-600">
-        {icon}
-        <h1 className="mt-4 font-semibold text-slate-900">{title}</h1>
-        <p className="mt-2 text-sm text-slate-500">{description}</p>
-      </div>
-    </main>
   );
 }
 

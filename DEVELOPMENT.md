@@ -26,11 +26,16 @@ The staff interface prioritizes one patient detail view rather than a wide table
 
 - `RoleSelector`: creates a patient session or opens the staff monitor.
 - `PatientForm`: owns the form, autosave, inactivity timer, and submit transaction.
+- `PatientFormHeader`, `PatientFormSection`, and `PatientFormActions`: compose the patient experience from focused, reusable presentation components.
+- `SubmissionSuccess`: presents the terminal submitted state and new-session action.
+- `ConfirmationDialog`: provides accessible confirmation UI for destructive or terminal actions.
+- `ConnectionBadge` and `PageState`: standardize shared connection and loading-state presentation.
 - `StaffSessionMonitor`: discovers open patient forms, routes the first session, and queues later notifications.
 - `StaffView`: loads the latest snapshot and renders real-time updates.
 - `FormField`: keeps labels, required markers, and errors consistent.
 - `ConnectionIndicator`: presents connection state without relying on color alone.
 - `useRealtimeSession`: encapsulates Supabase channel setup, Presence, Broadcast, cleanup, and local fallback.
+- `useCopyFeedback`: centralizes clipboard feedback and timer cleanup.
 - `patient-schema`: provides the shared TypeScript model and Zod validation contract.
 - `session-lifecycle`: centralizes valid activity-state transitions.
 - `session-store`: maps the application model to Supabase and local development storage.

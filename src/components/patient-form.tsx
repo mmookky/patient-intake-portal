@@ -1,25 +1,25 @@
 "use client";
 
-/* eslint-disable react-hooks/refs -- React Hook Form invokes the submit callback only from an event. */
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  CheckCircle2,
-  ChevronRight,
-  Clipboard,
   HeartHandshake,
   Languages,
   LoaderCircle,
   Phone,
-  RotateCcw,
   UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Brand } from "@/components/brand";
-import { ConnectionIndicator } from "@/components/connection-indicator";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { FormField } from "@/components/form-field";
+import { PageState } from "@/components/page-state";
+import { PatientFormActions } from "@/components/patient-form-actions";
+import { PatientFormHeader } from "@/components/patient-form-header";
+import { PatientFormSection } from "@/components/patient-form-section";
+import { SubmissionSuccess } from "@/components/submission-success";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 import { useRealtimeSession } from "@/hooks/use-realtime-session";
 import {
   createEmptySession,
@@ -49,19 +49,23 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
   const [isReady, setIsReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [pendingSubmission, setPendingSubmission] =
+    useState<PatientFormData | null>(null);
+  const [isFinalSubmitting, setIsFinalSubmitting] = useState(false);
+  const [isResetConfirmationOpen, setIsResetConfirmationOpen] = useState(false);
   const sessionRef = useRef(session);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingDraftSave = useRef<Promise<void> | null>(null);
   const submissionInProgress = useRef(false);
+  const { copied, copy } = useCopyFeedback();
 
   const {
     control,
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
     defaultValues: emptyPatientForm,
@@ -215,7 +219,25 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
     };
   }, [isReady, publish, scheduleInactive]);
 
-  async function submitForm(data: PatientFormData) {
+  useEffect(() => {
+    if (
+      navigator.webdriver ||
+      !isReady ||
+      !isDirty ||
+      session.status === "submitted"
+    )
+      return;
+
+    const confirmTabClose = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", confirmTabClose);
+    return () => window.removeEventListener("beforeunload", confirmTabClose);
+  }, [isDirty, isReady, session.status]);
+
+  async function submitForm(data: PatientFormData): Promise<boolean> {
     setSubmitError("");
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -229,21 +251,27 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
       setSession(submitted);
       submissionInProgress.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
+      return true;
     } catch {
       submissionInProgress.current = false;
       setSubmitError(
         "We couldn't submit the form. Your information is still here—please try again.",
       );
       scheduleInactive();
+      return false;
     }
   }
 
+  async function confirmSubmission() {
+    if (!pendingSubmission) return;
+    setIsFinalSubmitting(true);
+    const succeeded = await submitForm(pendingSubmission);
+    setIsFinalSubmitting(false);
+    if (succeeded) setPendingSubmission(null);
+  }
+
   async function copyStaffLink() {
-    await navigator.clipboard.writeText(
-      `${window.location.origin}/staff/${sessionId}`,
-    );
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2_000);
+    await copy(`${window.location.origin}/staff/${sessionId}`);
   }
 
   function startNewForm() {
@@ -251,56 +279,35 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
   }
 
   function resetDraft() {
-    const confirmed = window.confirm(
-      "Clear every field in this draft? This cannot be undone.",
-    );
-    if (!confirmed) return;
-
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSubmitError("");
     const cleared = resetSessionDraft(sessionRef.current);
     reset({ ...emptyPatientForm });
     publish(cleared, true);
     scheduleInactive();
+    setIsResetConfirmationOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  if (!isReady) return <LoadingScreen />;
+  if (!isReady)
+    return (
+      <PageState
+        icon={
+          <LoaderCircle className="mx-auto mb-3 size-7 animate-spin text-blue-600" />
+        }
+        title="Preparing your secure form"
+        description="Loading the latest patient session…"
+        tone="slate"
+      />
+    );
 
   if (session.status === "submitted") {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <Brand />
-        <main className="mx-auto grid max-w-xl place-items-center px-4 py-20 text-center">
-          <span className="grid size-20 place-items-center rounded-full bg-emerald-100 text-emerald-700">
-            <CheckCircle2 className="size-10" />
-          </span>
-          <h1 className="mt-7 text-3xl font-semibold text-slate-950">
-            Information submitted
-          </h1>
-          <p className="mt-3 leading-7 text-slate-600">
-            Thank you. The care team has received your information and can
-            review the completed submission.
-          </p>
-          <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={startNewForm}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-semibold text-white hover:bg-blue-700"
-            >
-              Start a new form <ChevronRight className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={copyStaffLink}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 font-semibold text-slate-800 hover:bg-slate-50"
-            >
-              <Clipboard className="size-4" />{" "}
-              {copied ? "Link copied" : "Copy staff view link"}
-            </button>
-          </div>
-        </main>
-      </div>
+      <SubmissionSuccess
+        copied={copied}
+        onCopyStaffLink={() => void copyStaffLink()}
+        onStartNewForm={startNewForm}
+      />
     );
   }
 
@@ -308,40 +315,18 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
     <div className="min-h-screen bg-slate-50">
       <Brand />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-sm font-semibold tracking-wide text-blue-700 uppercase">
-              Patient registration
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              Tell us about yourself
-            </h1>
-            <p className="mt-3 max-w-2xl leading-7 text-slate-600">
-              Complete the form below so our care team can prepare for your
-              visit.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 self-start">
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-2">
-              <ConnectionIndicator status={connectionStatus} />
-            </span>
-            <button
-              type="button"
-              onClick={copyStaffLink}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              <Clipboard className="size-4" />
-              {copied ? "Link copied" : "Copy staff link"}
-            </button>
-          </div>
-        </div>
+        <PatientFormHeader
+          connectionStatus={connectionStatus}
+          copied={copied}
+          onCopyStaffLink={() => void copyStaffLink()}
+        />
 
         <form
-          onSubmit={handleSubmit(submitForm)}
+          onSubmit={handleSubmit((data) => setPendingSubmission(data))}
           noValidate
           className="space-y-5"
         >
-          <FormSection
+          <PatientFormSection
             icon={<UserRound className="size-5" />}
             title="Personal information"
             description="Your identity and basic details"
@@ -422,9 +407,9 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
                 <option>Other</option>
               </select>
             </FormField>
-          </FormSection>
+          </PatientFormSection>
 
-          <FormSection
+          <PatientFormSection
             icon={<Phone className="size-5" />}
             title="Contact details"
             description="How the care team can reach you"
@@ -474,9 +459,9 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
                 {...register("address")}
               />
             </FormField>
-          </FormSection>
+          </PatientFormSection>
 
-          <FormSection
+          <PatientFormSection
             icon={<Languages className="size-5" />}
             title="Preferences"
             description="Help us communicate with you comfortably"
@@ -525,9 +510,9 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
                 {...register("religion")}
               />
             </FormField>
-          </FormSection>
+          </PatientFormSection>
 
-          <FormSection
+          <PatientFormSection
             icon={<HeartHandshake className="size-5" />}
             title="Emergency contact"
             description="Optional—complete both fields if you add a contact"
@@ -554,7 +539,7 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
                 {...register("emergencyContactRelationship")}
               />
             </FormField>
-          </FormSection>
+          </PatientFormSection>
 
           {submitError && (
             <div
@@ -564,74 +549,32 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
               {submitError}
             </div>
           )}
-          <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm text-slate-500">
-              {isSaving ? "Saving your draft…" : "Draft saved automatically"}
-            </span>
-            <div className="flex flex-col-reverse gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={resetDraft}
-                disabled={isSubmitting || isSaving}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <RotateCcw className="size-4" /> Reset form
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || connectionStatus === "offline"}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isSubmitting ? (
-                  <LoaderCircle className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    Review and submit <ChevronRight className="size-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          <PatientFormActions
+            isSaving={isSaving}
+            isSubmitting={isSubmitting || isFinalSubmitting}
+            isOffline={connectionStatus === "offline"}
+            onReset={() => setIsResetConfirmationOpen(true)}
+          />
         </form>
       </main>
+      <ConfirmationDialog
+        open={pendingSubmission !== null}
+        title="Submit patient information?"
+        description="Please confirm that the information is correct. You cannot edit this form after it has been submitted."
+        confirmLabel="Confirm submission"
+        pending={isFinalSubmitting}
+        onCancel={() => setPendingSubmission(null)}
+        onConfirm={() => void confirmSubmission()}
+      />
+      <ConfirmationDialog
+        open={isResetConfirmationOpen}
+        title="Reset this form?"
+        description="Every field in this draft will be cleared. This action cannot be undone."
+        confirmLabel="Reset form"
+        tone="danger"
+        onCancel={() => setIsResetConfirmationOpen(false)}
+        onConfirm={resetDraft}
+      />
     </div>
-  );
-}
-
-function FormSection({
-  icon,
-  title,
-  description,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-      <div className="mb-6 flex gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700">
-          {icon}
-        </span>
-        <div>
-          <h2 className="font-semibold text-slate-950">{title}</h2>
-          <p className="mt-0.5 text-sm text-slate-500">{description}</p>
-        </div>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2">{children}</div>
-    </section>
-  );
-}
-
-function LoadingScreen() {
-  return (
-    <main className="grid min-h-screen place-items-center bg-slate-50">
-      <div className="text-center text-slate-600">
-        <LoaderCircle className="mx-auto mb-3 size-7 animate-spin text-blue-600" />
-        Preparing your secure form…
-      </div>
-    </main>
   );
 }

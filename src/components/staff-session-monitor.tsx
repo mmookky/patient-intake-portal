@@ -3,7 +3,7 @@
 import { Bell, ExternalLink, Radio, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ConnectionIndicator } from "@/components/connection-indicator";
+import { ConnectionBadge } from "@/components/connection-badge";
 import {
   useStaffSessionFeed,
   type StaffSessionSignal,
@@ -106,9 +106,7 @@ export function StaffSessionMonitor({
       {children}
       <div className="fixed top-4 right-4 z-40 flex items-center gap-2 sm:top-6 sm:right-6">
         {pathname === "/staff" && (
-          <span className="rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm">
-            <ConnectionIndicator status={connectionStatus} />
-          </span>
+          <ConnectionBadge status={connectionStatus} elevated />
         )}
       </div>
 

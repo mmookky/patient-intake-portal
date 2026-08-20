@@ -32,3 +32,9 @@ button,
 a {
   -webkit-tap-highlight-color: transparent;
 }
+
+button:not(:disabled),
+a[href],
+[role="button"] {
+  cursor: pointer;
+}
