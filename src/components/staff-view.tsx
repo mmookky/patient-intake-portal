@@ -6,15 +6,18 @@ import {
   Clipboard,
   Clock3,
   LoaderCircle,
+  Plus,
   Radio,
   UserRound,
   WifiOff,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Brand } from "@/components/brand";
 import { ConnectionIndicator } from "@/components/connection-indicator";
 import { useRealtimeSession } from "@/hooks/use-realtime-session";
+import { createDemoSessionId } from "@/lib/demo-session";
 import type { PatientSession, PatientStatus } from "@/lib/patient-schema";
 import { markSessionInactive } from "@/lib/session-lifecycle";
 import { loadSession } from "@/lib/session-store";
@@ -41,6 +44,7 @@ const statusStyle: Record<
 };
 
 export function StaffView({ sessionId }: { sessionId: string }) {
+  const router = useRouter();
   const [session, setSession] = useState<PatientSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -78,6 +82,10 @@ export function StaffView({ sessionId }: { sessionId: string }) {
     setTimeout(() => setCopied(false), 2_000);
   }
 
+  function startNewSession() {
+    router.push(`/staff/${createDemoSessionId()}`);
+  }
+
   if (loading)
     return (
       <CenteredState
@@ -98,13 +106,14 @@ export function StaffView({ sessionId }: { sessionId: string }) {
             description={loadError}
           />
         ) : !session ? (
-          <EmptySession sessionId={sessionId} />
+          <EmptySession sessionId={sessionId} onNewSession={startNewSession} />
         ) : (
           <SessionDetails
             session={session}
             connectionStatus={connectionStatus}
             onCopy={copyPatientLink}
             copied={copied}
+            onNewSession={startNewSession}
           />
         )}
       </main>
@@ -117,11 +126,13 @@ function SessionDetails({
   connectionStatus,
   onCopy,
   copied,
+  onNewSession,
 }: {
   session: PatientSession;
   connectionStatus: Parameters<typeof ConnectionIndicator>[0]["status"];
   onCopy: () => void;
   copied: boolean;
+  onNewSession: () => void;
 }) {
   const { formData } = session;
   const fullName =
@@ -149,6 +160,13 @@ function SessionDetails({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={onNewSession}
+            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <Plus className="size-4" /> Start new session
+          </button>
           <span
             className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ${status.className}`}
           >
@@ -313,20 +331,35 @@ function ActivityItem({
   );
 }
 
-function EmptySession({ sessionId }: { sessionId: string }) {
+function EmptySession({
+  sessionId,
+  onNewSession,
+}: {
+  sessionId: string;
+  onNewSession: () => void;
+}) {
   return (
     <CenteredCard
       icon={<UserRound />}
       title="Waiting for patient activity"
       description="No saved information exists for this session yet. Open the patient form in another tab to begin the real-time demo."
       action={
-        <Link
-          href={`/patient/${sessionId}`}
-          target="_blank"
-          className="inline-flex min-h-12 items-center justify-center rounded-xl bg-blue-600 px-5 font-semibold text-white hover:bg-blue-700"
-        >
-          Open patient form
-        </Link>
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            href={`/patient/${sessionId}`}
+            target="_blank"
+            className="inline-flex min-h-12 items-center justify-center rounded-xl bg-blue-600 px-5 font-semibold text-white hover:bg-blue-700"
+          >
+            Open patient form
+          </Link>
+          <button
+            type="button"
+            onClick={onNewSession}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <Plus className="size-4" /> Start new session
+          </button>
+        </div>
       }
     />
   );

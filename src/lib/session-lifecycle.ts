@@ -1,4 +1,8 @@
-import type { PatientFormData, PatientSession } from "./patient-schema";
+import {
+  emptyPatientForm,
+  type PatientFormData,
+  type PatientSession,
+} from "./patient-schema";
 
 export function updateActiveSession(
   session: PatientSession,
@@ -20,6 +24,20 @@ export function markSessionInactive(
 ): PatientSession {
   if (session.status === "submitted") return session;
   return { ...session, status: "inactive", updatedAt: now.toISOString() };
+}
+
+export function resetSessionDraft(
+  session: PatientSession,
+  now = new Date(),
+): PatientSession {
+  if (session.status === "submitted") return session;
+  return {
+    ...session,
+    formData: { ...emptyPatientForm },
+    status: "active",
+    updatedAt: now.toISOString(),
+    submittedAt: null,
+  };
 }
 
 export function submitSession(

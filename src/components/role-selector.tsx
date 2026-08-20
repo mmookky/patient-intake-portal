@@ -8,22 +8,13 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createDemoSessionId, getDemoSessionId } from "@/lib/demo-session";
 
 export function RoleSelector() {
   const router = useRouter();
 
-  function getDemoSessionId() {
-    const storageKey = "patient-intake-portal:demo-session-id";
-    const existing = localStorage.getItem(storageKey);
-    if (existing) return existing;
-
-    const sessionId = crypto.randomUUID();
-    localStorage.setItem(storageKey, sessionId);
-    return sessionId;
-  }
-
   function startPatientSession() {
-    router.push(`/patient/${getDemoSessionId()}`);
+    router.push(`/patient/${createDemoSessionId()}`);
   }
 
   function openStaffSession() {

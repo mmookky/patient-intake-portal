@@ -11,6 +11,7 @@ import {
   Languages,
   LoaderCircle,
   Phone,
+  RotateCcw,
   UserRound,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/patient-schema";
 import {
   markSessionInactive,
+  resetSessionDraft,
   submitSession,
   updateActiveSession,
 } from "@/lib/session-lifecycle";
@@ -165,6 +167,21 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2_000);
+  }
+
+  function resetDraft() {
+    const confirmed = window.confirm(
+      "Clear every field in this draft? This cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    setSubmitError("");
+    const cleared = resetSessionDraft(sessionRef.current);
+    reset({ ...emptyPatientForm });
+    publish(cleared, true);
+    scheduleInactive();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   if (!isReady) return <LoadingScreen />;
@@ -457,23 +474,33 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
               {submitError}
             </div>
           )}
-          <div className="flex flex-col-reverse items-stretch justify-between gap-4 pt-2 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-slate-500">
               {isSaving ? "Saving your draft…" : "Draft saved automatically"}
             </span>
-            <button
-              type="submit"
-              disabled={isSubmitting || connectionStatus === "offline"}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <>
-                  Review and submit <ChevronRight className="size-4" />
-                </>
-              )}
-            </button>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={resetDraft}
+                disabled={isSubmitting || isSaving}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <RotateCcw className="size-4" /> Reset form
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || connectionStatus === "offline"}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <>
+                    Review and submit <ChevronRight className="size-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </main>
