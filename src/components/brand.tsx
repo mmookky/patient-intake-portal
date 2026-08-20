@@ -16,7 +16,7 @@ export function Brand() {
         </Link>
         <span className="flex items-center gap-2 text-sm text-slate-500">
           <ShieldCheck aria-hidden="true" className="size-4 text-emerald-600" />
-          Candidate assignment
+          Privacy-aware demo
         </span>
       </div>
     </header>

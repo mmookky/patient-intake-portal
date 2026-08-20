@@ -38,7 +38,9 @@ export function useRealtimeSession({
     const supabase = getSupabaseBrowserClient();
 
     if (!supabase) {
-      const channel = new BroadcastChannel(`agnos-session:${sessionId}`);
+      const channel = new BroadcastChannel(
+        `patient-intake-session:${sessionId}`,
+      );
       browserChannel.current = channel;
       channel.onmessage = (event: MessageEvent<SessionMessage>) =>
         onSessionRef.current(event.data.session);

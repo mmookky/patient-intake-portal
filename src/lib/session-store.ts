@@ -1,7 +1,7 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { PatientSession } from "@/lib/patient-schema";
 
-const localKey = (id: string) => `agnos-patient-session:${id}`;
+const localKey = (id: string) => `patient-intake-session:${id}`;
 
 interface SessionRow {
   id: string;

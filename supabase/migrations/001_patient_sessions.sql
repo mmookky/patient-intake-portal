@@ -9,7 +9,7 @@ create table if not exists public.patient_sessions (
 
 alter table public.patient_sessions enable row level security;
 
--- Assignment-only access: unguessable UUID sessions are used as capability links.
+-- Demo access: unguessable UUID sessions are used as capability links.
 -- A production system must replace these policies with authenticated staff/patient access.
 create policy "anonymous sessions can be read"
 on public.patient_sessions for select to anon using (true);

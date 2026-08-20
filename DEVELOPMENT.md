@@ -1,10 +1,10 @@
 # Development Planning
 
-This project is an independent front-end candidate assignment for Agnos and is not presented as an official company product.
+This project is an independent portfolio demonstration of a real-time patient intake workflow.
 
 ## Product scope
 
-The application intentionally focuses on the two interfaces requested by the assignment: patient data entry and staff monitoring. The landing page is a demo-oriented entry point, not an authentication mechanism. Appointment management, medical records, analytics, and staff editing are outside scope.
+The application intentionally focuses on two core interfaces: patient data entry and staff monitoring. The landing page is a demo-oriented entry point, not an authentication mechanism. Appointment management, medical records, analytics, and staff editing are outside scope.
 
 ## Information architecture
 
@@ -19,7 +19,7 @@ The interface uses a restrained healthcare visual language: blue for primary act
 
 Patient fields are grouped by meaning rather than presented as one long list. Desktop layouts use two columns where fields are naturally paired. Below the medium breakpoint, every field becomes one column and the primary action expands for comfortable touch use.
 
-The staff interface is a patient detail view rather than a wide table. Long values such as address and email wrap safely. Desktop screens place session activity beside the details; narrow screens stack it below. A table would be appropriate for a future multi-patient queue, but that is not required by this assignment.
+The staff interface is a patient detail view rather than a wide table. Long values such as address and email wrap safely. Desktop screens place session activity beside the details; narrow screens stack it below. A table would be appropriate for a future multi-patient queue, but is outside the current product scope.
 
 ## Component architecture
 
@@ -77,9 +77,9 @@ Submission is persisted before the UI reports success. A failed save leaves the 
 
 ## Technical trade-offs
 
-Supabase Realtime was chosen instead of hosting a custom WebSocket server. It satisfies the assignment's WebSocket-or-equivalent requirement while allowing the Next.js frontend to deploy cleanly on Vercel. The assignment policies favor easy review over production authorization. Authentication and stricter RLS are documented rather than added as unrelated product scope.
+Supabase Realtime was chosen instead of hosting a custom WebSocket server. It provides WebSocket-based synchronization while allowing the Next.js frontend to deploy cleanly on Vercel. The demo policies favor easy exploration over production authorization. Authentication and stricter RLS are documented as production requirements rather than added to this focused portfolio scope.
 
-The client currently broadcasts complete form snapshots. The payload is small, and snapshots simplify reconnect and ordering behavior for this assignment. A larger production form could broadcast typed patches with server versioning.
+The client currently broadcasts complete form snapshots. The payload is small, and snapshots simplify reconnect and ordering behavior for this demo. A larger production form could broadcast typed patches with server versioning.
 
 ## Git strategy
 

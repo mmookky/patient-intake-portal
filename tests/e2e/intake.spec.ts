@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("landing page exposes both assignment interfaces", async ({ page }) => {
+test("landing page exposes both portal interfaces", async ({ page }) => {
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: /patient information/i }),

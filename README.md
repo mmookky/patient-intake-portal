@@ -1,8 +1,6 @@
 # Patient Intake Portal
 
-A responsive, real-time patient intake portal created as a front-end candidate assignment for Agnos. Patients complete a validated form while staff monitor every update, activity state, and final submission from a separate view.
-
-This repository is an independent candidate submission and is not an official Agnos product.
+A responsive, real-time patient intake experience designed as a portfolio project. Patients complete a validated form while staff monitor every update, activity state, and final submission from a separate view.
 
 > Demo only: do not enter real patient information. Production healthcare software requires authenticated access, audited privacy controls, and an organization-specific compliance review.
 
@@ -58,7 +56,7 @@ corepack prepare pnpm@11.19.0 --activate
 
    ```bash
    git clone <repository-url>
-   cd agnos-patient-intake
+   cd patient-intake-portal
    ```
 
 2. Install dependencies:
@@ -158,4 +156,4 @@ See [DEVELOPMENT.md](./DEVELOPMENT.md) for the architecture, responsive design d
 
 ## Security notes
 
-The included anonymous Supabase policies make the assignment easy to evaluate with UUID capability links. They are intentionally limited to a demo. A production implementation must use authenticated patient/staff identities, restrictive row-level security, audit logging, retention policies, encryption governance, and a formal healthcare privacy review.
+The included anonymous Supabase policies make the portfolio demo easy to explore with UUID capability links. They are intentionally limited to a demo. A production implementation must use authenticated patient/staff identities, restrictive row-level security, audit logging, retention policies, encryption governance, and a formal healthcare privacy review.
