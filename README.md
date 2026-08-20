@@ -40,15 +40,8 @@ Open the patient and staff URLs in separate tabs. Changes in the patient form ap
 ## Prerequisites
 
 - Node.js 24 or a supported current LTS release
-- pnpm 11+
+- npm 10+
 - A Supabase project for cross-device real-time behavior and persistence
-
-Enable Corepack and install pnpm if it is not already available:
-
-```bash
-corepack enable
-corepack prepare pnpm@11.19.0 --activate
-```
 
 ## Local setup
 
@@ -62,7 +55,7 @@ corepack prepare pnpm@11.19.0 --activate
 2. Install dependencies:
 
    ```bash
-   pnpm install
+   npm install
    ```
 
 3. Copy the environment template:
@@ -89,7 +82,7 @@ corepack prepare pnpm@11.19.0 --activate
 6. Start the development server:
 
    ```bash
-   pnpm dev
+   npm run dev
    ```
 
 7. Open `http://localhost:3000`.
@@ -116,17 +109,17 @@ Without Supabase variables, the application automatically uses browser storage a
 
 ## Commands
 
-| Command             | Purpose                               |
-| ------------------- | ------------------------------------- |
-| `pnpm dev`          | Start the local development server    |
-| `pnpm build`        | Create a production build             |
-| `pnpm start`        | Run the production server             |
-| `pnpm lint`         | Run ESLint                            |
-| `pnpm typecheck`    | Run TypeScript without emitting files |
-| `pnpm test`         | Run unit tests                        |
-| `pnpm test:e2e`     | Run Playwright tests                  |
-| `pnpm format`       | Format the repository                 |
-| `pnpm format:check` | Verify formatting                     |
+| Command                | Purpose                               |
+| ---------------------- | ------------------------------------- |
+| `npm run dev`          | Start the local development server    |
+| `npm run build`        | Create a production build             |
+| `npm run start`        | Run the production server             |
+| `npm run lint`         | Run ESLint                            |
+| `npm run typecheck`    | Run TypeScript without emitting files |
+| `npm test`             | Run unit tests                        |
+| `npm run test:e2e`     | Run Playwright tests                  |
+| `npm run format`       | Format the repository                 |
+| `npm run format:check` | Verify formatting                     |
 
 ## Project structure
 
