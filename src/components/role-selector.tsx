@@ -8,7 +8,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createDemoSessionId, getDemoSessionId } from "@/lib/demo-session";
+import { createDemoSessionId } from "@/lib/demo-session";
 
 export function RoleSelector() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export function RoleSelector() {
   }
 
   function openStaffSession() {
-    router.push(`/staff/${getDemoSessionId()}`);
+    router.push("/staff");
   }
 
   return (

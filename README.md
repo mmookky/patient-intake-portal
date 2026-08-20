@@ -8,7 +8,7 @@ A responsive, real-time patient intake experience designed as a portfolio projec
 
 - Application: add the Vercel URL after deployment
 - Patient demo: choose **Start patient form** on the landing page
-- Staff demo: choose **Open staff view** to reuse the same session
+- Staff demo: choose **Open staff view** to monitor incoming sessions
 
 Open the patient and staff URLs in separate tabs. Changes in the patient form appear in the staff view immediately.
 
@@ -24,6 +24,7 @@ Open the patient and staff URLs in separate tabs. Changes in the patient form ap
 - Automatic inactive state after 30 seconds without form interaction
 - Terminal submitted state that cannot be overwritten by inactivity
 - Session-specific patient and staff URLs
+- Multi-session staff notifications with new-tab review
 - Loading, empty, saving, reconnecting, error, and success states
 - Unit and end-to-end test coverage for critical flows
 
@@ -91,13 +92,15 @@ Without Supabase variables, the application automatically uses browser storage a
 
 ## How to test the real-time flow
 
-1. Choose **Open staff view** on the landing page.
-2. Select **Open patient form** to open the matching patient session in another tab.
-3. Enter patient information and confirm that the staff view updates without refreshing.
-4. Stop interacting for 30 seconds and confirm that the status changes to **Inactive**.
-5. Edit any field and confirm that it returns to **Actively filling**.
-6. Submit valid information and confirm that both views show **Submitted**.
-7. Refresh the staff page and confirm the submitted snapshot remains available.
+1. Choose **Open staff view** and confirm that it waits for patient activity.
+2. Open the landing page in another tab and choose **Start patient form**.
+3. Confirm that Staff opens the first patient session automatically.
+4. Enter patient information and confirm that the staff view updates without refreshing.
+5. Open a second patient form and confirm that Staff shows a notification without replacing the current session.
+6. Open the notification in a new tab and confirm it shows the second session.
+7. Stop interacting for 30 seconds and confirm that the status changes to **Inactive**.
+8. Edit any field and confirm that it returns to **Actively filling**.
+9. Submit valid information and confirm that both views show **Submitted**.
 
 ## Validation rules
 

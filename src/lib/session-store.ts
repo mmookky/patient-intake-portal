@@ -2,6 +2,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { PatientSession } from "@/lib/patient-schema";
 
 const localKey = (id: string) => `patient-intake-session:${id}`;
+export const staffFeedChannelName = "patient-intake-portal:staff-feed";
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -9,7 +10,7 @@ function canPersistToSupabase(id: string): boolean {
   return uuidPattern.test(id);
 }
 
-interface SessionRow {
+export interface SessionRow {
   id: string;
   form_data: PatientSession["formData"];
   status: PatientSession["status"];
@@ -18,7 +19,7 @@ interface SessionRow {
   submitted_at: string | null;
 }
 
-function fromRow(row: SessionRow): PatientSession {
+export function sessionFromRow(row: SessionRow): PatientSession {
   return {
     id: row.id,
     formData: row.form_data,
@@ -32,7 +33,12 @@ function fromRow(row: SessionRow): PatientSession {
 export async function saveSession(session: PatientSession): Promise<void> {
   localStorage.setItem(localKey(session.id), JSON.stringify(session));
   const supabase = getSupabaseBrowserClient();
-  if (!supabase || !canPersistToSupabase(session.id)) return;
+  if (!supabase || !canPersistToSupabase(session.id)) {
+    const channel = new BroadcastChannel(staffFeedChannelName);
+    channel.postMessage({ sessionId: session.id, status: session.status });
+    channel.close();
+    return;
+  }
 
   const { error } = await supabase.from("patient_sessions").upsert({
     id: session.id,
@@ -55,7 +61,7 @@ export async function loadSession(id: string): Promise<PatientSession | null> {
       .eq("id", id)
       .maybeSingle();
     if (error) throw error;
-    if (data) return fromRow(data as SessionRow);
+    if (data) return sessionFromRow(data as SessionRow);
   }
 
   const stored = localStorage.getItem(localKey(id));

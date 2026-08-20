@@ -20,14 +20,19 @@ test("patient form reports validation errors", async ({ page }) => {
   await expect(page.getByText("Email is required")).toBeVisible();
 });
 
-test("staff view offers the matching patient session", async ({ page }) => {
-  await page.goto("/staff/e2e-session");
+test("staff monitor waits without creating a patient session", async ({
+  page,
+}) => {
+  await page.goto("/staff");
   await expect(
     page.getByRole("heading", { name: /waiting for patient activity/i }),
   ).toBeVisible();
   await expect(
+    page.getByRole("button", { name: /start new session/i }),
+  ).toHaveCount(0);
+  await expect(
     page.getByRole("link", { name: /open patient form/i }),
-  ).toHaveAttribute("href", "/patient/e2e-session");
+  ).toHaveCount(0);
 });
 
 test("responsive pages have no horizontal overflow", async ({

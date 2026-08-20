@@ -8,6 +8,7 @@ import type {
   PatientSession,
   SessionMessage,
 } from "@/lib/patient-schema";
+import { staffFeedChannelName } from "@/lib/session-store";
 
 interface RealtimeSessionOptions {
   sessionId: string;
@@ -25,6 +26,8 @@ export function useRealtimeSession({
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("connecting");
   const supabaseChannel = useRef<RealtimeChannel | null>(null);
+  const staffFeedChannel = useRef<RealtimeChannel | null>(null);
+  const pendingStaffSignal = useRef<PatientSession | null>(null);
   const browserChannel = useRef<BroadcastChannel | null>(null);
   const onSessionRef = useRef(onSession);
   const onPatientLeaveRef = useRef(onPatientLeave);
@@ -72,21 +75,53 @@ export function useRealtimeSession({
       });
 
     supabaseChannel.current = channel;
+    const feedChannel =
+      role === "patient"
+        ? supabase
+            .channel(staffFeedChannelName, {
+              config: { presence: { key: `patient-${sessionId}` } },
+            })
+            .subscribe(async (status) => {
+              if (status === "SUBSCRIBED" && pendingStaffSignal.current) {
+                const pending = pendingStaffSignal.current;
+                await staffFeedChannel.current?.track({
+                  sessionId: pending.id,
+                  status: pending.status,
+                });
+              }
+            })
+        : null;
+    staffFeedChannel.current = feedChannel;
+
     return () => {
       void supabase.removeChannel(channel);
+      if (feedChannel) void supabase.removeChannel(feedChannel);
     };
   }, [role, sessionId]);
 
   const broadcast = useCallback(async (session: PatientSession) => {
     const message: SessionMessage = { type: "snapshot", session };
+    const staffSignal = { sessionId: session.id, status: session.status };
     if (supabaseChannel.current) {
       await supabaseChannel.current.send({
         type: "broadcast",
         event: "session-update",
         payload: message,
       });
+      pendingStaffSignal.current = session;
+      if (staffFeedChannel.current) {
+        await staffFeedChannel.current.send({
+          type: "broadcast",
+          event: "session-opened",
+          payload: staffSignal,
+        });
+        await staffFeedChannel.current.track(staffSignal);
+      }
     } else {
       browserChannel.current?.postMessage(message);
+      const channel = new BroadcastChannel(staffFeedChannelName);
+      channel.postMessage(staffSignal);
+      channel.close();
     }
   }, []);
 

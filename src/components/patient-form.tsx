@@ -35,7 +35,7 @@ import {
 } from "@/lib/session-lifecycle";
 import { loadSession, saveSession } from "@/lib/session-store";
 
-const INACTIVITY_MS = 30_000;
+const INACTIVITY_MS = 10_000;
 const inputClass =
   "min-h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100";
 
@@ -111,6 +111,7 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
         setSession(initial);
         reset(initial.formData);
         if (!stored) void saveSession(initial);
+        void broadcast(initial);
         if (initial.status !== "submitted") scheduleInactive();
       })
       .finally(() => setIsReady(true));
@@ -119,7 +120,7 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [reset, scheduleInactive, sessionId]);
+  }, [broadcast, reset, scheduleInactive, sessionId]);
 
   useEffect(() => {
     if (!isReady || sessionRef.current.status === "submitted") return;
@@ -134,14 +135,66 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
   }, [formValues, isReady, publish, scheduleInactive]);
 
   useEffect(() => {
-    const markInactiveOnExit = () => {
-      if (sessionRef.current.status !== "submitted") {
-        void broadcast(markSessionInactive(sessionRef.current));
+    if (!isReady) return;
+
+    const markActiveFromInteraction = () => {
+      if (document.hidden || sessionRef.current.status === "submitted") return;
+
+      if (sessionRef.current.status !== "active") {
+        const active = updateActiveSession(
+          sessionRef.current,
+          sessionRef.current.formData,
+        );
+        publish(active, true);
       }
+      scheduleInactive();
     };
-    window.addEventListener("pagehide", markInactiveOnExit);
-    return () => window.removeEventListener("pagehide", markInactiveOnExit);
-  }, [broadcast]);
+
+    const markInactiveWhileAway = () => {
+      if (sessionRef.current.status === "submitted") return;
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      const inactive = markSessionInactive(sessionRef.current);
+      publish(inactive, true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) markInactiveWhileAway();
+      else markActiveFromInteraction();
+    };
+
+    document.addEventListener("pointermove", markActiveFromInteraction, {
+      passive: true,
+    });
+    document.addEventListener("pointerdown", markActiveFromInteraction, {
+      passive: true,
+    });
+    document.addEventListener("keydown", markActiveFromInteraction);
+    document.addEventListener("scroll", markActiveFromInteraction, {
+      passive: true,
+    });
+    document.addEventListener("touchstart", markActiveFromInteraction, {
+      passive: true,
+    });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", markActiveFromInteraction);
+    window.addEventListener("blur", markInactiveWhileAway);
+    window.addEventListener("pagehide", markInactiveWhileAway);
+
+    if (document.hidden) markInactiveWhileAway();
+
+    return () => {
+      document.removeEventListener("pointermove", markActiveFromInteraction);
+      document.removeEventListener("pointerdown", markActiveFromInteraction);
+      document.removeEventListener("keydown", markActiveFromInteraction);
+      document.removeEventListener("scroll", markActiveFromInteraction);
+      document.removeEventListener("touchstart", markActiveFromInteraction);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", markActiveFromInteraction);
+      window.removeEventListener("blur", markInactiveWhileAway);
+      window.removeEventListener("pagehide", markInactiveWhileAway);
+    };
+  }, [isReady, publish, scheduleInactive]);
 
   async function submitForm(data: PatientFormData) {
     setSubmitError("");

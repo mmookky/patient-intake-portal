@@ -10,6 +10,7 @@ The application intentionally focuses on two core interfaces: patient data entry
 
 - `/` explains the product and links to both roles.
 - `/patient/[sessionId]` owns data entry, validation, activity detection, autosave, and submission.
+- `/staff` waits for live patient Presence and routes the first active session automatically.
 - `/staff/[sessionId]` owns read-only monitoring of one patient session.
 - A UUID session ID separates concurrent patients and acts as the channel topic.
 
@@ -19,12 +20,13 @@ The interface uses a restrained healthcare visual language: blue for primary act
 
 Patient fields are grouped by meaning rather than presented as one long list. Desktop layouts use two columns where fields are naturally paired. Below the medium breakpoint, every field becomes one column and the primary action expands for comfortable touch use.
 
-The staff interface is a patient detail view rather than a wide table. Long values such as address and email wrap safely. Desktop screens place session activity beside the details; narrow screens stack it below. A table would be appropriate for a future multi-patient queue, but is outside the current product scope.
+The staff interface prioritizes one patient detail view rather than a wide table. Long values such as address and email wrap safely. Desktop screens place session activity beside the details; narrow screens stack it below. Additional live sessions appear as privacy-conscious notifications and open in separate tabs, so they never replace the record currently under review.
 
 ## Component architecture
 
-- `RoleSelector`: creates a patient session or opens the shared demo session.
+- `RoleSelector`: creates a patient session or opens the staff monitor.
 - `PatientForm`: owns the form, autosave, inactivity timer, and submit transaction.
+- `StaffSessionMonitor`: discovers open patient forms, routes the first session, and queues later notifications.
 - `StaffView`: loads the latest snapshot and renders real-time updates.
 - `FormField`: keeps labels, required markers, and errors consistent.
 - `ConnectionIndicator`: presents connection state without relying on color alone.
@@ -47,6 +49,10 @@ Patient input
                  │
                  ├── live broadcast → Staff View
                  └── saved snapshot → refresh or late join
+
+Patient form Presence ──▶ Staff monitor
+                              ├── first session → open detail
+                              └── later sessions → notification + new tab
 ```
 
 Broadcast provides low-latency ephemeral updates. PostgreSQL supplies durable recovery when staff open the page after earlier broadcasts or refresh the browser. In local development without credentials, `BroadcastChannel` and `localStorage` reproduce the same two-tab interaction.
@@ -73,6 +79,8 @@ Submission is persisted before the UI reports success. A failed save leaves the 
 - Debouncing reduces database writes while Broadcast keeps the interface responsive.
 - The submit button is disabled during submission to prevent duplicate requests.
 - Session-specific channels prevent updates from different patients from mixing.
+- The staff monitor never creates patient sessions and never replaces an open detail view when another patient arrives.
+- Global Presence announces only session metadata; patient details remain on the session-specific channel.
 - Connection and activity state use text and icons as well as color.
 
 ## Technical trade-offs
