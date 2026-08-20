@@ -7,8 +7,8 @@ A responsive, real-time patient intake experience designed as a portfolio projec
 ## Live application
 
 - Application: add the Vercel URL after deployment
-- Patient demo: `/patient/demo`
-- Staff demo: `/staff/demo`
+- Patient demo: choose **Start patient form** on the landing page
+- Staff demo: choose **Open staff view** to reuse the same session
 
 Open the patient and staff URLs in separate tabs. Changes in the patient form appear in the staff view immediately.
 
@@ -91,8 +91,8 @@ Without Supabase variables, the application automatically uses browser storage a
 
 ## How to test the real-time flow
 
-1. Open `/staff/demo` in one tab.
-2. Select **Open patient form** to open `/patient/demo` in another tab.
+1. Choose **Open staff view** on the landing page.
+2. Select **Open patient form** to open the matching patient session in another tab.
 3. Enter patient information and confirm that the staff view updates without refreshing.
 4. Stop interacting for 30 seconds and confirm that the status changes to **Inactive**.
 5. Edit any field and confirm that it returns to **Actively filling**.

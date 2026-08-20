@@ -12,8 +12,22 @@ import { useRouter } from "next/navigation";
 export function RoleSelector() {
   const router = useRouter();
 
+  function getDemoSessionId() {
+    const storageKey = "patient-intake-portal:demo-session-id";
+    const existing = localStorage.getItem(storageKey);
+    if (existing) return existing;
+
+    const sessionId = crypto.randomUUID();
+    localStorage.setItem(storageKey, sessionId);
+    return sessionId;
+  }
+
   function startPatientSession() {
-    router.push(`/patient/${crypto.randomUUID()}`);
+    router.push(`/patient/${getDemoSessionId()}`);
+  }
+
+  function openStaffSession() {
+    router.push(`/staff/${getDemoSessionId()}`);
   }
 
   return (
@@ -64,7 +78,7 @@ export function RoleSelector() {
               title="I'm a staff member"
               description="Monitor the demo patient session, review live updates, and see when the form is submitted."
               action="Open staff view"
-              onClick={() => router.push("/staff/demo")}
+              onClick={openStaffSession}
             />
           </div>
           <p className="mt-7 text-center text-sm text-slate-500">

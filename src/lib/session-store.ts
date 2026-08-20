@@ -2,6 +2,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { PatientSession } from "@/lib/patient-schema";
 
 const localKey = (id: string) => `patient-intake-session:${id}`;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function canPersistToSupabase(id: string): boolean {
+  return uuidPattern.test(id);
+}
 
 interface SessionRow {
   id: string;
@@ -26,7 +32,7 @@ function fromRow(row: SessionRow): PatientSession {
 export async function saveSession(session: PatientSession): Promise<void> {
   localStorage.setItem(localKey(session.id), JSON.stringify(session));
   const supabase = getSupabaseBrowserClient();
-  if (!supabase) return;
+  if (!supabase || !canPersistToSupabase(session.id)) return;
 
   const { error } = await supabase.from("patient_sessions").upsert({
     id: session.id,
@@ -42,7 +48,7 @@ export async function saveSession(session: PatientSession): Promise<void> {
 
 export async function loadSession(id: string): Promise<PatientSession | null> {
   const supabase = getSupabaseBrowserClient();
-  if (supabase) {
+  if (supabase && canPersistToSupabase(id)) {
     const { data, error } = await supabase
       .from("patient_sessions")
       .select("*")
