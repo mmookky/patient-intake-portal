@@ -47,4 +47,56 @@ describe("patientFormSchema", () => {
         "emergencyContactRelationship",
       ]);
   });
+
+  it("accepts Thai and international names with common separators", () => {
+    const result = patientFormSchema.safeParse({
+      ...validForm,
+      firstName: "ปุณณภา",
+      middleName: "Anne-Marie",
+      lastName: "O’Connor",
+      nationality: "Thai",
+      emergencyContactName: "สมหญิง ใจดี",
+      emergencyContactRelationship: "Mother-in-law",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects numbers and symbols in name fields", () => {
+    const result = patientFormSchema.safeParse({
+      ...validForm,
+      firstName: "Narin123",
+      lastName: "Sukjai@",
+      nationality: "Thai2",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.issues.map((issue) => issue.path[0])).toEqual(
+        expect.arrayContaining(["firstName", "lastName", "nationality"]),
+      );
+  });
+
+  it("rejects unsupported select values and implausible field values", () => {
+    const result = patientFormSchema.safeParse({
+      ...validForm,
+      dateOfBirth: "1800-02-31",
+      gender: "Unknown",
+      phoneNumber: "+66 12",
+      address: "---",
+      preferredLanguage: "Unsupported",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.issues.map((issue) => issue.path[0])).toEqual(
+        expect.arrayContaining([
+          "dateOfBirth",
+          "gender",
+          "phoneNumber",
+          "address",
+          "preferredLanguage",
+        ]),
+      );
+  });
 });

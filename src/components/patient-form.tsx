@@ -50,6 +50,8 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
   const sessionRef = useRef(session);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingDraftSave = useRef<Promise<void> | null>(null);
+  const submissionInProgress = useRef(false);
 
   const {
     control,
@@ -83,12 +85,26 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
 
   const publish = useCallback(
     (next: PatientSession, persist = false) => {
+      if (
+        next.status !== "submitted" &&
+        (submissionInProgress.current ||
+          sessionRef.current.status === "submitted")
+      )
+        return;
+
       sessionRef.current = next;
       setSession(next);
       void broadcast(next);
       if (persist) {
         setIsSaving(true);
-        void saveSession(next).finally(() => setIsSaving(false));
+        const save = saveSession(next);
+        pendingDraftSave.current = save;
+        void save.finally(() => {
+          if (pendingDraftSave.current === save) {
+            pendingDraftSave.current = null;
+            setIsSaving(false);
+          }
+        });
       }
     },
     [broadcast],
@@ -199,14 +215,19 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
   async function submitForm(data: PatientFormData) {
     setSubmitError("");
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    submissionInProgress.current = true;
     const submitted = submitSession(sessionRef.current, data);
     try {
+      await pendingDraftSave.current;
       await saveSession(submitted);
       await broadcast(submitted);
       sessionRef.current = submitted;
       setSession(submitted);
+      submissionInProgress.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
+      submissionInProgress.current = false;
       setSubmitError(
         "We couldn't submit the form. Your information is still here—please try again.",
       );
