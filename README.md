@@ -6,7 +6,7 @@ A responsive, real-time patient intake experience designed as a portfolio projec
 
 ## Live application
 
-- Application: add the Vercel URL after deployment
+- Application: [patient-intake-portal-two.vercel.app](https://patient-intake-portal-two.vercel.app)
 - Patient demo: choose **Start patient form** on the landing page
 - Staff demo: choose **Open staff view** to monitor incoming sessions
 
@@ -21,10 +21,12 @@ Open the patient and staff URLs in separate tabs. Changes in the patient form ap
 - Local `BroadcastChannel` fallback for development without Supabase credentials
 - Draft persistence and refresh recovery
 - `Actively filling`, `Inactive`, and `Submitted` lifecycle
-- Automatic inactive state after 30 seconds without form interaction
+- Automatic inactive state after 10 seconds without interaction or when the patient leaves the tab
+- Mouse, keyboard, touch, scroll, and tab-focus activity restore the active state
 - Terminal submitted state that cannot be overwritten by inactivity
+- A submitted patient can start a fresh form with a new session ID
 - Session-specific patient and staff URLs
-- Multi-session staff notifications with new-tab review
+- Multi-session staff notifications with unread badges and new-tab review
 - Loading, empty, saving, reconnecting, error, and success states
 - Unit and end-to-end test coverage for critical flows
 
@@ -49,7 +51,7 @@ Open the patient and staff URLs in separate tabs. Changes in the patient form ap
 1. Clone the repository and enter it:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/mmookky/patient-intake-portal.git
    cd patient-intake-portal
    ```
 
@@ -98,15 +100,20 @@ Without Supabase variables, the application automatically uses browser storage a
 4. Enter patient information and confirm that the staff view updates without refreshing.
 5. Open a second patient form and confirm that Staff shows a notification without replacing the current session.
 6. Open the notification in a new tab and confirm it shows the second session.
-7. Stop interacting for 30 seconds and confirm that the status changes to **Inactive**.
-8. Edit any field and confirm that it returns to **Actively filling**.
-9. Submit valid information and confirm that both views show **Submitted**.
+7. Dismiss a notification toast and confirm that its unread badge remains until the session is opened or removed from the list.
+8. Stop interacting for 10 seconds, switch away from the patient tab, or blur the window and confirm that the status changes to **Inactive**.
+9. Move the pointer, type, scroll, touch the page, or return to the patient tab and confirm that it returns to **Actively filling**.
+10. Submit valid information and confirm that both views remain **Submitted**.
+11. Choose **Start a new form** and confirm that a blank form opens under a new session ID.
 
 ## Validation rules
 
 - All fields are required except middle name, emergency contact, and religion.
-- Email and phone number must have valid formats.
-- Date of birth cannot be in the future.
+- Name-like fields accept Unicode letters, spaces, apostrophes, and hyphens; numbers and unsupported symbols are rejected.
+- Phone numbers must contain 8 to 15 digits, and email addresses must have a valid format.
+- Date of birth must be a real date, cannot be in the future, and must be within the last 120 years.
+- Gender and preferred language must match the available options.
+- Addresses must contain meaningful letters or numbers and cannot exceed 300 characters.
 - Emergency contact name and relationship must be completed together.
 - Invalid information cannot be submitted.
 
@@ -147,8 +154,8 @@ See [DEVELOPMENT.md](./DEVELOPMENT.md) for the architecture, responsive design d
 1. Push the repository to GitHub.
 2. Import it into Vercel.
 3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel project settings.
-4. Deploy and verify both `/patient/demo` and `/staff/demo` in separate browsers.
-5. Add the production URL to this README before submission.
+4. Deploy and open the production landing page. Choose **Start patient form** to create a valid UUID session, and open `/staff` in another browser or device.
+5. Verify the complete real-time flow on the production domain before submission.
 
 ## Security notes
 

@@ -60,15 +60,15 @@ Broadcast provides low-latency ephemeral updates. PostgreSQL supplies durable re
 ## Status lifecycle
 
 ```text
-Active ──30 seconds without interaction──▶ Inactive
-  ▲                                         │
-  └──────────────new form input─────────────┘
+Active ──10 seconds idle or leaves tab──▶ Inactive
+  ▲                                        │
+  └────mouse, keyboard, touch, scroll──────┘
 
 Active/Inactive ──valid successful submit──▶ Submitted
 Submitted is terminal
 ```
 
-Submission is persisted before the UI reports success. A failed save leaves the form editable and provides a retryable error. Once submitted, inactivity and later input updates cannot change the terminal status.
+Submission waits for any in-flight draft save and is then persisted before the UI reports success. Pending autosave timers are cancelled, and stale active snapshots are blocked from overwriting the terminal state. A failed save leaves the form editable and provides a retryable error. Once submitted, inactivity and later input updates cannot change the terminal status. The patient may start a new blank form, which receives a new UUID and leaves the submitted record unchanged.
 
 ## Edge cases
 
@@ -78,8 +78,10 @@ Submission is persisted before the UI reports success. A failed save leaves the 
 - Empty optional fields render as “Not provided yet,” never `null` or `undefined`.
 - Debouncing reduces database writes while Broadcast keeps the interface responsive.
 - The submit button is disabled during submission to prevent duplicate requests.
+- Draft persistence is serialized with submission so a delayed autosave cannot change `Submitted` back to `Active`.
 - Session-specific channels prevent updates from different patients from mixing.
 - The staff monitor never creates patient sessions and never replaces an open detail view when another patient arrives.
+- Closing a transient notification keeps it unread in the compact badge list; opening or explicitly removing it clears that item.
 - Global Presence announces only session metadata; patient details remain on the session-specific channel.
 - Connection and activity state use text and icons as well as color.
 
