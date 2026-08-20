@@ -120,7 +120,7 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
   }, [reset, scheduleInactive, sessionId]);
 
   useEffect(() => {
-    if (!isReady || session.status === "submitted") return;
+    if (!isReady || sessionRef.current.status === "submitted") return;
     const next = updateActiveSession(sessionRef.current, {
       ...emptyPatientForm,
       ...formValues,
@@ -129,7 +129,7 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
     scheduleInactive();
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => publish(next, true), 1_000);
-  }, [formValues, isReady, publish, scheduleInactive, session.status]);
+  }, [formValues, isReady, publish, scheduleInactive]);
 
   useEffect(() => {
     const markInactiveOnExit = () => {
