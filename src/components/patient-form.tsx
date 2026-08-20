@@ -14,6 +14,7 @@ import {
   RotateCcw,
   UserRound,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Brand } from "@/components/brand";
@@ -34,12 +35,14 @@ import {
   updateActiveSession,
 } from "@/lib/session-lifecycle";
 import { loadSession, saveSession } from "@/lib/session-store";
+import { createDemoSessionId } from "@/lib/demo-session";
 
 const INACTIVITY_MS = 10_000;
 const inputClass =
   "min-h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100";
 
 export function PatientForm({ sessionId }: { sessionId: string }) {
+  const router = useRouter();
   const [session, setSession] = useState<PatientSession>(() =>
     createEmptySession(sessionId),
   );
@@ -243,6 +246,10 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
     setTimeout(() => setCopied(false), 2_000);
   }
 
+  function startNewForm() {
+    router.push(`/patient/${createDemoSessionId()}`);
+  }
+
   function resetDraft() {
     const confirmed = window.confirm(
       "Clear every field in this draft? This cannot be undone.",
@@ -275,14 +282,23 @@ export function PatientForm({ sessionId }: { sessionId: string }) {
             Thank you. The care team has received your information and can
             review the completed submission.
           </p>
-          <button
-            type="button"
-            onClick={copyStaffLink}
-            className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 font-semibold text-slate-800 hover:bg-slate-50"
-          >
-            <Clipboard className="size-4" />{" "}
-            {copied ? "Link copied" : "Copy staff view link"}
-          </button>
+          <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={startNewForm}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-semibold text-white hover:bg-blue-700"
+            >
+              Start a new form <ChevronRight className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={copyStaffLink}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              <Clipboard className="size-4" />{" "}
+              {copied ? "Link copied" : "Copy staff view link"}
+            </button>
+          </div>
         </main>
       </div>
     );

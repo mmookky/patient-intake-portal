@@ -6,5 +6,5 @@ export default async function PatientPage({
   params: Promise<{ sessionId: string }>;
 }) {
   const { sessionId } = await params;
-  return <PatientForm sessionId={sessionId} />;
+  return <PatientForm key={sessionId} sessionId={sessionId} />;
 }
