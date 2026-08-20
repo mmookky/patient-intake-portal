@@ -28,18 +28,18 @@ export function RoleSelector() {
             <span className="grid size-11 place-items-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
               <HeartPulse aria-hidden="true" className="size-6" />
             </span>
-            Agnos Care
+            Patient Intake Portal
           </div>
           <span className="hidden items-center gap-2 text-sm text-slate-500 sm:flex">
             <Activity aria-hidden="true" className="size-4 text-emerald-600" />{" "}
-            Real-time patient intake
+            Candidate assignment for Agnos
           </span>
         </header>
 
         <section className="flex flex-1 flex-col justify-center py-16 sm:py-24">
           <div className="mx-auto mb-10 max-w-2xl text-center">
             <p className="mb-3 text-sm font-semibold tracking-wide text-blue-700 uppercase">
-              Welcome to Agnos
+              Front-end candidate assignment
             </p>
             <h1 className="text-4xl font-semibold tracking-tight text-balance text-slate-950 sm:text-5xl">
               Patient information, connected in real time

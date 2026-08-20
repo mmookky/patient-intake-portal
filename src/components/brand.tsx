@@ -12,11 +12,11 @@ export function Brand() {
           <span className="grid size-10 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
             <HeartPulse aria-hidden="true" className="size-5" />
           </span>
-          <span>Agnos Care</span>
+          <span>Patient Intake Portal</span>
         </Link>
         <span className="flex items-center gap-2 text-sm text-slate-500">
           <ShieldCheck aria-hidden="true" className="size-4 text-emerald-600" />
-          Secure demo
+          Candidate assignment
         </span>
       </div>
     </header>

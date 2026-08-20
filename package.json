@@ -1,5 +1,5 @@
 {
-  "name": "agnos-patient-intake",
+  "name": "agnos-patient-intake-assignment",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.19.0",

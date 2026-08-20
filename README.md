@@ -1,6 +1,8 @@
-# Agnos Patient Intake
+# Patient Intake Portal
 
-A responsive, real-time patient intake experience built for the Agnos front-end developer assignment. Patients complete a validated form while staff monitor every update, activity state, and final submission from a separate view.
+A responsive, real-time patient intake portal created as a front-end candidate assignment for Agnos. Patients complete a validated form while staff monitor every update, activity state, and final submission from a separate view.
+
+This repository is an independent candidate submission and is not an official Agnos product.
 
 > Demo only: do not enter real patient information. Production healthcare software requires authenticated access, audited privacy controls, and an organization-specific compliance review.
 

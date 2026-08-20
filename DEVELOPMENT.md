@@ -1,5 +1,7 @@
 # Development Planning
 
+This project is an independent front-end candidate assignment for Agnos and is not presented as an official company product.
+
 ## Product scope
 
 The application intentionally focuses on the two interfaces requested by the assignment: patient data entry and staff monitoring. The landing page is a demo-oriented entry point, not an authentication mechanism. Appointment management, medical records, analytics, and staff editing are outside scope.

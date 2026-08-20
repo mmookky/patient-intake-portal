@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agnos Patient Intake",
-  description: "Real-time patient intake and staff monitoring experience.",
+  title: "Patient Intake Portal | Agnos Candidate Assignment",
+  description:
+    "A front-end candidate assignment demonstrating real-time patient intake and staff monitoring.",
 };
 
 export default function RootLayout({
