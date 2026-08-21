@@ -2,13 +2,27 @@
 
 import { Bell, ExternalLink, Radio, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { ConnectionBadge } from "@/components/connection-badge";
 import {
   useStaffSessionFeed,
   type StaffSessionSignal,
 } from "@/hooks/use-staff-session-feed";
-import type { PatientSession } from "@/lib/patient-schema";
+import type { ConnectionStatus, PatientSession } from "@/lib/patient-schema";
+
+const StaffConnectionContext = createContext<ConnectionStatus>("connecting");
+
+export function StaffConnectionStatus() {
+  const status = useContext(StaffConnectionContext);
+  return <ConnectionBadge status={status} elevated />;
+}
 
 interface SessionNotice {
   id: string;
@@ -102,13 +116,8 @@ export function StaffSessionMonitor({
   );
 
   return (
-    <>
+    <StaffConnectionContext.Provider value={connectionStatus}>
       {children}
-      <div className="fixed top-4 right-4 z-40 flex items-center gap-2 sm:top-6 sm:right-6">
-        {pathname === "/staff" && (
-          <ConnectionBadge status={connectionStatus} elevated />
-        )}
-      </div>
 
       {!isListOpen && visibleToasts.length > 0 && (
         <div
@@ -170,7 +179,7 @@ export function StaffSessionMonitor({
           </span>
         </button>
       )}
-    </>
+    </StaffConnectionContext.Provider>
   );
 }
 
